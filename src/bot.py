@@ -1,6 +1,9 @@
 import logging
 import asyncio
 import time
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from src.config import TELEGRAM_BOT_TOKEN
@@ -127,7 +130,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             pass # If network is totally down, we can't even send the error message
 
+def start_dummy_server():
+    """Starts a dummy HTTP server to satisfy Railway/Heroku port binding health checks."""
+    port = int(os.environ.get("PORT", 8080))
+    class HealthCheckHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+        def log_message(self, format, *args):
+            pass # Disable noisy HTTP logging
+            
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    print(f"✅ Dummy server listening on port {port} for PaaS health checks.")
+
 if __name__ == '__main__':
+    # Start Dummy Server for PaaS (Railway) HealthChecks
+    start_dummy_server()
+    
     # Sensible timeouts for network resilience
     # get_updates_request settings can help with pooling errors, but we use builder defaults
     application = (
