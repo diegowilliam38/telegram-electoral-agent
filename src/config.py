@@ -4,9 +4,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# API Keys (Aggressively stripping hidden characters and literal escapes from Railway UI)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").replace("\\n", "").replace("\\r", "").replace("\n", "").replace("\r", "").replace('"', '').replace("'", "").strip()
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").replace("\\n", "").replace("\\r", "").replace("\n", "").replace("\r", "").replace('"', '').replace("'", "").strip()
+import re
+
+# API Keys (Regex to obliterate ALL spaces, tabs, newlines, and carriage returns from copy-paste)
+_raw_openai = os.getenv("OPENAI_API_KEY", "").replace("\\n", "").replace("\\r", "").replace('"', '').replace("'", "")
+OPENAI_API_KEY = re.sub(r'\s+', '', _raw_openai)
+
+_raw_tg = os.getenv("TELEGRAM_BOT_TOKEN", "").replace("\\n", "").replace("\\r", "").replace('"', '').replace("'", "")
+TELEGRAM_BOT_TOKEN = re.sub(r'\s+', '', _raw_tg)
 
 # Paths (Relative to avoid C++ Unicode FileIO errors on Windows)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
