@@ -1,7 +1,7 @@
 # ADR-006: Estrutura Multiagente e Resiliência em Ambiente Doméstico
 
 **Date:** 2026-02-25
-**Status:** Draft
+**Status:** Accepted
 
 ## Context
 
