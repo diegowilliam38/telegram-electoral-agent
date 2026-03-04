@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  telegram-bot:
+    build: .
+    container_name: electoral-agent
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY} # Opcional: para observabilidade
+      - LANGCHAIN_TRACING_V2=true # Opcional: habilitar trace
+    # Se precisar mapear logs físicos para o host:
+    # volumes:
+    #   - ./logs:/app/logs

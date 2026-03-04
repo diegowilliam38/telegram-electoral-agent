@@ -1,0 +1,17 @@
+project: telegram-electoral-agent-pilot
+parent_project: telegram-electoral-agent
+status: planning
+objective: >
+  Piloto com usuários reais de zonas eleitorais para validar
+  qualidade do agente, estabilidade e usabilidade em produção.
+infra_target: VPS real (Hostinger ou equivalente)
+key_decisions:
+  - ADR-P001: migração ChromaDB para pgvector no Supabase
+  - Deploy via VPS real com systemd
+  - Sessões isoladas por chat_id do Telegram
+adrs_base_project:
+  - Ler ADR-001 (ChromaDB) — decisão de migrar para pgvector
+  - Ler ADR-002 (Singleton) — padrão de inicialização
+  - Ler ADR-003 (LangGraph) — orquestrador mantido
+  - Ler ADR-004 (RAG Jurídico) — chunking a implementar
+  - Ler ADR-005 (Protocolo ADRs) — padrão de documentação

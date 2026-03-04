@@ -1,0 +1,12 @@
+name: telegram-electoral-agent
+status: planning
+phase: reception
+current_sprint: 0
+team:
+  - analyst
+  - architect
+  - pm
+  - dev
+blockers:
+  - Waiting for "Manual de Práticas Cartorárias"
+next_milestone: PRD Approval
