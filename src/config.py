@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# API Keys
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+# API Keys (using .strip() to remove trailing \r or \n from copy-paste)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 
 # Paths (Relative to avoid C++ Unicode FileIO errors on Windows)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
