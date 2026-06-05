@@ -24,3 +24,11 @@ pip-delete-this-directory.txt
 *.txt
 !requirements.txt
 *.ps1
+
+# Old ChromaDB data (Exceeding GH Limit, migrated to FAISS)
+data/chroma_corrupted/
+data/chroma_db_v2/
+
+# Runtime local data
+data/query_logs.jsonl
+data/embeddings_cache/

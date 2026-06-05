@@ -3,7 +3,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage
-from src.config import OPENAI_API_KEY, MODEL_NAME
+from src.config import OPENAI_API_KEY, MODEL_NAME, OPENAI_API_BASE
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def call_llm_with_retry(llm, prompt_val):
@@ -28,7 +28,7 @@ async def node_intent(state):
     )
     
     prompt = ChatPromptTemplate.from_template(system_prompt + "\n\nUsuário: {query}\n\nPerfi:")
-    llm = ChatOpenAI(model=MODEL_NAME, api_key=OPENAI_API_KEY, temperature=0.0)
+    llm = ChatOpenAI(model=MODEL_NAME, api_key=OPENAI_API_KEY, base_url=OPENAI_API_BASE, temperature=0.0)
     
     prompt_val = prompt.invoke({"query": query})
     response_msg = await asyncio.to_thread(call_llm_with_retry, llm, prompt_val)

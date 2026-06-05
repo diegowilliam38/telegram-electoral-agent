@@ -21,9 +21,15 @@ def ingest_manual():
     documents = []
     for pdf_file in pdf_files:
         pdf_path = os.path.join(DOCS_DIR, pdf_file)
+        if not os.path.exists(pdf_path):
+            print(f"⚠️ Warning: PDF {pdf_path} no longer exists. Skipping.")
+            continue
         print(f"📖 Loading PDF: {pdf_path}...")
-        loader = PyPDFLoader(pdf_path)
-        documents.extend(loader.load())
+        try:
+            loader = PyPDFLoader(pdf_path)
+            documents.extend(loader.load())
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to load PDF {pdf_path}: {e}. Skipping.")
         
     print(f"✅ Loaded {len(documents)} pages in total.")
 
@@ -61,7 +67,21 @@ def ingest_manual():
     filtered_count = len(chunks) - len(safe_chunks)
     print(f"🧹 Filtered {filtered_count} chunks that were too large for embeddings.")
     
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL, api_key=OPENAI_API_KEY)
+    from langchain_classic.embeddings import CacheBackedEmbeddings
+    from langchain_classic.storage import LocalFileStore
+    
+    underlying_embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL, api_key=OPENAI_API_KEY)
+    
+    # Local store for caching embeddings to prevent re-embedding unchanged documents
+    cache_dir = os.path.join("data", "embeddings_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    store = LocalFileStore(cache_dir)
+    
+    embeddings = CacheBackedEmbeddings.from_bytes_store(
+        underlying_embeddings,
+        store,
+        namespace=underlying_embeddings.model
+    )
     
     vector_store = FAISS.from_documents(
         documents=safe_chunks,

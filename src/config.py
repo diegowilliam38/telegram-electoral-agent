@@ -20,8 +20,9 @@ DB_DIR = os.path.join("data", "faiss_index")
 TOPICS_FILE = os.path.join("data", "topics.json")
 
 # Model Settings
-MODEL_NAME = "gpt-4o-mini"
-EMBEDDING_MODEL = "text-embedding-3-small"
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
 
 # Vector DB Settings
 COLLECTION_NAME = "manual_eleitoral"
