@@ -167,7 +167,12 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
     application.add_handler(message_handler)
     
-    # Initialize LangGraph at startup
+    # Initialize LangGraph at startup (with auto-ingestion check if vector store is missing)
+    if not os.path.exists("data/faiss_index"):
+        print("⚡ FAISS index not found. Running auto-ingestion...")
+        from src.rag.ingestion import ingest_manual
+        ingest_manual()
+
     from src.graph import build_graph
     
     print("⏳ Initializing LangGraph...")

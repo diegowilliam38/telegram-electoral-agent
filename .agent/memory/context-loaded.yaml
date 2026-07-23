@@ -1,0 +1,8 @@
+context_loaded:
+  global_rules: "GEMINI.md @ AIOS-WORKSPACE — V5.12 — lido"
+  project_rules: "Nenhum CLAUDE.md ou GEMINI.md local encontrado. Aplicando RULES global V5.12"
+  conflicts_identified: []
+  exceptions_active:
+    - "Nenhuma exceção ativa no projeto"
+  loaded_at: "2026-07-23 19:24"
+  loaded_by: "@sm"

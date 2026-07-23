@@ -32,3 +32,5 @@ data/chroma_db_v2/
 # Runtime local data
 data/query_logs.jsonl
 data/embeddings_cache/
+data/faiss_index/
+

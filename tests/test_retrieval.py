@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from src.rag.researcher import _retriever, node_researcher
+from src.rag.researcher import get_retriever, node_researcher
 from langchain_core.messages import HumanMessage
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -9,7 +9,7 @@ async def test():
     query = "Quais os documentos para transferência de título?"
     print(f"🔍 Query: {query}")
     
-    docs = _retriever.invoke(query)
+    docs = get_retriever().invoke(query)
     print(f"\n📄 Retrieved {len(docs)} documents:")
     for idx, doc in enumerate(docs):
         print(f"\n--- Document {idx+1} (Source: {doc.metadata.get('source', 'unknown')}) ---")

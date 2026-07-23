@@ -1,6 +1,7 @@
 import re
 
 async def node_validator(state):
+    """Skill legal-citation-checker: Prevents hallucination of non-existent articles, ASE codes, or laws."""
     messages = state["messages"]
     context_docs = state.get("context_docs", "")
     
@@ -13,9 +14,8 @@ async def node_validator(state):
         # No citations to validate
         return {"validation_passed": True}
     
-    # Skill de Validação: Evita alucinação de artigos ou páginas que não estão no texto recuperado.
-    # Ex: se o modelo afirma "art. 15", verificamos se "15" existe no contexto recuperado.
-    citations_mentioned = set(re.findall(r"(?:artigo|art\.|página|pag\.|pág\.)\s*(\d+[a-z]?)", last_msg))
+    # Skill: legal-citation-checker - Verifies articles, ASE codes, and numerical citations
+    citations_mentioned = set(re.findall(r"(?:artigo|art\.|página|pag\.|pág\.|ase)\s*(\d+[a-z]?)", last_msg))
     
     if not citations_mentioned:
         return {"validation_passed": True}
@@ -23,8 +23,9 @@ async def node_validator(state):
     context_lower = context_docs.lower()
     
     for cit in citations_mentioned:
-        # Se um número de artigo mencionado não estiver no contexto bruto, detectamos hallucination.
+        # If an article or ASE code mentioned by LLM does not exist in context, flag hallucination
         if cit not in context_lower:
             return {"validation_passed": False}
             
     return {"validation_passed": True}
+

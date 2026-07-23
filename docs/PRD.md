@@ -1,30 +1,31 @@
-# Product Requirements Document (PRD)
-**Project**: Agente Telegram Eleitoral (Cartório Virtual)
-**Author**: @analyst (Industrial Squad)
-**Status**: Draft
+# PRD - Agente Virtual do Cartório Eleitoral (TRE-MA)
 
-## 1. Problem Statement
-Os servidores dos cartórios eleitorais precisam consultar frequentemente o **Manual de Práticas Cartorárias** para tirar dúvidas sobre procedimentos específicos (ex: alistamento, transferência, revisão, etc.). A consulta ao PDF é lenta e a busca por palavras-chave muitas vezes é imprecisa.
+## 1. Visão Geral do Produto
+O **Agente Virtual do Cartório Eleitoral** é uma solução de inteligência artificial de alta fidelidade baseada em RAG (Retrieval-Augmented Generation) e orquestração agêntica via **LangGraph**, voltada ao atendimento de duas personas: **Servidores da Justiça Eleitoral (TRE-MA)** e **Cidadãos/Eleitores**.
 
-## 2. Solution Overview
-Um **Agente de IA no Telegram** que atua como um especialista no Manual. O usuário faz uma pergunta em linguagem natural e o agente responde com base estritamente no conteúdo do manual, citando a fonte.
+## 2. Requisitos de Negócio e ROI
+- **Redução de Atendimento Presencial/Telefônico:** Resolver 80%+ das dúvidas recorrentes de eleitores (local de votação, alistamento, transferência e biometria) de forma automatizada via Telegram/WhatsApp.
+- **Produtividade Cartorária:** Fornecer suporte operacional imediato ao servidor com indicação direta de **códigos ASE**, telas do sistema Elo, procedimentos de balcão e fundamentação jurídica/doutrinária.
 
-## 3. User Stories
-*   **US.1**: Como servidor, quero perguntar "Quais os documentos para transferência de título?" e receber a lista exata do manual.
-*   **US.2**: Como servidor, quero saber a página ou capítulo de onde a informação foi tirada para conferência.
-*   **US.3**: Como administrador, quero poder atualizar o manual (PDF) e o agente aprender as novas regras automaticamente.
+---
 
-## 4. Functional Requirements
-*   **Interface**: Telegram Bot.
-*   **Input**: Texto (perguntas sobre processos eleitorais).
-*   **Processing**: RAG (Retrieval-Augmented Generation) sobre o Manual de Práticas Cartorárias.
-*   **Output**: Resposta textual + Citação (Página/Capítulo).
-*   **Context**: O bot deve manter o contexto da conversa (ex: "E para alistamento?" deve entender que estamos falando de documentos, se essa foi a pergunta anterior).
+## 3. Arquitetura de Cognitive Skills Aprimorada (V2.0)
 
-## 5. Non-Functional Requirements
-*   **Accuracy**: Alucinação zero. Se a resposta não estiver no manual, o bot deve dizer "Não encontrei essa informação no manual".
-*   **Speed**: Resposta em < 5 segundos.
-*   **Security**: Logs de conversas não devem expor dados sensíveis (embora a consulta seja sobre procedimentos públicos).
+O "cérebro" do agente é expandido com 6 Cognitive Skills fundamentais baseadas nos padrões do `_CORE_SKILLS` (`gatilhos-wiki` e `antigravity-kit`):
 
-## 6. Constraints
-*   Uso exclusivo do "Manual de Práticas Cartorárias 2022.pdf" como fonte de verdade.
+| Skill | Papel & Padrão de Origem (`_CORE_SKILLS`) | Função no Agente Eleitoral |
+| :--- | :--- | :--- |
+| **`electoral-calendar-calculator`** | `gatilhos-decisao` / `gatilhos-estrategia` | Calcula prazos eleitorais das Eleições 2026 (ex: fechamento de cadastro, desincompatibilização). |
+| **`ase-code-resolver`** | `gatilhos-raciocinio-critico` | Resolve problemas cadastrais sugerindo a combinação exata de Código ASE + Motivo + Documentos + Ação no Elo. |
+| **`lgpd-privacy-shield`** | `gatilhos-privacidade-seguranca` | Mascara e sanitiza CPFs, RGs, Títulos e dados sensíveis antes de registrar logs ou responder ao usuário. |
+| **`legal-citation-checker`** | `gatilhos-raciocinio-critico` (Steelman/Red Team) | Aplica a hierarquia de normas (Resolução TSE > Manual TRE > Doutrina) e previne alucinações de artigos de lei. |
+| **`plain-language-translator`** | `gatilhos-comunicacao` (ELI5 / BLUF / Minto) | Converte o "juridiquês" em linguagem simples para o cidadão, agrupando em no máximo 3 etapas sem Markdown. |
+| **`query-expander-electoral`** | `gatilhos-llm-prompt` | Expande os termos populares do eleitor (ex: "mudei de cidade") em sinônimos jurídicos para otimizar o RAG. |
+
+---
+
+## 4. Requisitos Não-Funcionais e Observabilidade
+- **Tempo de Resposta RAG:** < 3.0s para recuperação vetorial FAISS + síntese LLM.
+- **Privacidade & Conformidade:** Sanitização total nos logs `data/query_logs.jsonl` (LGPD).
+- **Auto-Ingestion Watcher:** Thread assíncrona monitorando `docs/references/` para atualização da base vetorial sem downtime.
+- **Saída Sanitizada:** Resposta em Texto Puro (Plain Text) para a persona `eleitor` no celular.

@@ -1,15 +1,37 @@
 version: '3.8'
 
 services:
-  telegram-bot:
+  electoral-api:
     build: .
-    container_name: electoral-agent
-    restart: unless-stopped
+    container_name: electoral-agent-api
+    restart: always
+    ports:
+      - "8123:8123"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - MODEL_NAME=${MODEL_NAME:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY} # Opcional: para observabilidade
-      - LANGCHAIN_TRACING_V2=true # Opcional: habilitar trace
-    # Se precisar mapear logs físicos para o host:
-    # volumes:
-    #   - ./logs:/app/logs
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+      - ./docs/references:/app/docs/references
+    command: python -m uvicorn src.api:app --host 0.0.0.0 --port 8123
+
+  telegram-bot:
+    build: .
+    container_name: electoral-agent-bot
+    restart: always
+    depends_on:
+      - electoral-api
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - MODEL_NAME=${MODEL_NAME:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+    command: python src/bot.py
