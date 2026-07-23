@@ -20,10 +20,10 @@ COPY requirements.txt .
 # Instalar dependências Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar os dados sensíveis e o código
-# OBS: O Banco FAISS (data/) será copiado junto para não ter que fazer ingestão na VPS
-COPY data/ data/
+# Criar diretório data/ e copiar código fonte
+RUN mkdir -p data
 COPY src/ src/
+COPY docs/ docs/
 
 # Setar a variável de ambiente PYTHONPATH para reconhecer o diretório src/
 ENV PYTHONPATH=/app
