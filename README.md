@@ -1,135 +1,119 @@
 # Agente Virtual do Cartório Eleitoral (TRE-MA) 🗳️🤖
 
-O **Agente Virtual do Cartório Eleitoral** é uma solução de inteligência artificial baseada em **RAG (Retrieval-Augmented Generation)** projetada para auxiliar servidores da Justiça Eleitoral do Maranhão (TRE-MA) e cidadãos (eleitores). O agente atua como um especialista no *Manual de Práticas Cartorárias*, *Resolução TSE nº 23.659/2021*, *Código Eleitoral* e doutrinas correlatas.
+O **Agente Virtual do Cartório Eleitoral** é uma solução de inteligência artificial de alta fidelidade baseada em **RAG (Retrieval-Augmented Generation)** e **LangGraph**, projetada para prestar suporte a servidores da Justiça Eleitoral do Maranhão (TRE-MA) e cidadãos (eleitores). O agente atua como um especialista no *Manual de Práticas Cartorárias*, *Resolução TSE nº 23.659/2021*, *Código Eleitoral Anotado 2026*, *Lei das Eleições* e doutrinas correlatas.
 
-A arquitetura do projeto utiliza o **LangGraph** como orquestrador de estado e integra-se de forma desacoplada a múltiplos canais de comunicação usando o **Hermes Gateway** (upstream).
+Atualmente implantado em produção na plataforma **Railway PaaS** com suporte a conteinerização Docker, resiliência 24/7 e observabilidade LGPD.
 
 ---
 
 ## 🏗️ Arquitetura do Sistema
 
-O fluxo de mensagens e processamento segue a topologia abaixo:
+O fluxo agêntico opera em topologia declarativa via LangGraph com suporte a múltiplos canais e deploy na Railway:
 
 ```mermaid
 graph TD
-    User([👤 Eleitor ou Servidor]) -->|Mensagem via Telegram| Telegram[📱 Telegram Bot]
-    Telegram -->|Webhook / Polling| Hermes[🦅 Hermes Gateway - WSL2]
-    Hermes -->|SSE / ChatCompletions v1| FastAPI[⚡ FastAPI Adapter - Port 8123]
+    User([👤 Eleitor ou Servidor]) -->|Mensagem via Telegram| Telegram[📱 Telegram Bot - Railway]
+    Telegram -->|Thread ID & Message| LangGraph [🧠 LangGraph Engine - Docker Container]
     
-    subgraph LangGraph [🧠 Motor de Estado LangGraph]
-        FastAPI -->|Extract Metadata & Thread ID| Researcher[🔍 Researcher Node - RAG]
-        Researcher -->|Busca Semântica FAISS k=20| DB[(💾 FAISS Vector DB)]
-        Researcher -->|Contexto Extraído| Validator[🛡️ Validator Node]
+    subgraph LangGraph [🧠 Motor Agêntico LangGraph com 6 Cognitive Skills]
+        Intent[🚦 Intent & LGPD Node] -->|Classifica Persona + Shield| Researcher[🔍 Researcher Node - RAG]
+        Researcher -->|Busca Semântica & Expansão FAISS k=20| DB[(💾 FAISS Vector DB)]
+        Researcher -->|Contexto Enriquecido| Validator[🛡️ Legal Citation Validator]
         Validator -->|Check Alucinações & Citações| Writer[✍️ Legal Writer Node]
     end
     
-    Writer -->|Resposta Formatada / Texto Puro| FastAPI
-    FastAPI -->|Streaming SSE Chunks| Hermes
-    Hermes -->|Mensagem Final| Telegram
-    Telegram -->|Exibição| User
+    Writer -->|Resposta Formatada / Plain Text| Telegram
+    Telegram -->|Exibição no Celular| User
 ```
 
 ---
 
-## ✨ Principais Funcionalidades
+## 🚀 Status da Implantação (Railway PaaS)
 
-### 1. RAG Multi-Documento de Alta Qualidade
-*   Busca semântica avançada utilizando **FAISS** e embeddings da OpenAI (`text-embedding-3-small`).
-*   Configuração otimizada com `k=20` para garantir a recuperação completa de listas de documentos complexas e tabelas da Resolução de Cadastro (Res. TSE nº 23.659/2021) e manuais de práticas.
-
-### 2. Comportamento de Duas Personas (Dual Persona)
-O sistema analisa automaticamente os metadados da conversa para definir a persona:
-*   **Modo Servidor**: Focado em produtividade interna. Utiliza a metodologia **BLUF** (Bottom Line Up Front) entregando a ação e o código ASE (Ex: ASE 337) na primeira linha, estruturação top-down baseada na **Pirâmide de Minto** e citações formais.
-*   **Modo Eleitor**: Linguagem simplificada e acolhedora baseada em **ELI5** (Explain Like I'm 5). Organiza as orientações em no máximo 3 etapas lógicas (**Regra de Três**) e formata a saída em **Texto Puro** (sem Markdown ou HTML), garantindo a legibilidade em dispositivos móveis.
-
-### 3. Observabilidade e Auditoria (Query Logger)
-*   Gravação estruturada de todas as requisições em `data/query_logs.jsonl` contendo: `timestamp`, `thread_id`, `query`, `response` gerada, `persona` classificada, latência (`elapsed_seconds`) e status (`SUCESSO` ou `INCONCLUSIVO`).
-*   **Conformidade com a LGPD**: O nó de pesquisa detecta dados pessoais reais (CPF, RG, Título de Eleitor) e injeta preventivamente avisos de privacidade no topo da conversa, sem gravar esses dados sensíveis nos logs do sistema (Data Minimization).
-
-### 4. Auto-Ingestion Pipeline (Directory Watcher)
-*   Uma thread assíncrona monitora a pasta `docs/references/` a cada 10 segundos buscando modificações ou novos arquivos PDF.
-*   **Otimização por Cache**: Utilização de `CacheBackedEmbeddings` para armazenar o hash dos arquivos processados no disco local (`data/embeddings_cache`). Arquivos inalterados são carregados instantaneamente, evitando custos com a API de embeddings da OpenAI/OpenRouter e eliminando rate-limits.
-*   **Reload Sem Downtime**: Atualização dinâmica do Vector Store e do retriever em memória de forma thread-safe sem interromper o serviço FastAPI.
+| Componente | Ambiente | Uptime | Status |
+| :--- | :--- | :---: | :--- |
+| **Railway Container** | Production (`adorable-passion`) | 24/7 | 🟢 **ACTIVE / ONLINE** |
+| **Cérebro Vetorial** | FAISS + OpenAI Embeddings | Instantâneo | 🟢 **11 PDFs (4.247 págs / 23.161 Chunks)** |
+| **Auto-Ingestion** | Startup Pipeline | On Boot | 🟢 **Automático** |
+| **Saúde HTTP** | Dummy Healthcheck (`:8080`) | 100% Uptime | 🟢 **PASSED** |
 
 ---
 
-## 📂 Estrutura do Projeto
+## ✨ As 6 Cognitive Skills Integradas (V2.0)
+
+O agente conta com habilidades cognitivas especializadas baseadas nos padrões do `_CORE_SKILLS/gatilhos-wiki`:
+
+1. **`query-expander-electoral`**: Expande automaticamente os termos do cidadão (ex: *"mudei de casa"* ➔ *"transferência de domicílio eleitoral requisitos documentos"*), otimizando a recuperação vetorial no FAISS.
+2. **`ase-code-resolver`**: Mapeia diretamente no primeiro parágrafo (**BLUF**) os códigos de operação cadastral (*ex: ASE 337 motivo 2*), prazos, comprovantes e ações no sistema Elo para o servidor.
+3. **`legal-citation-checker`**: Valida a presença de leis, resoluções (*Res. TSE 23.659/2021*) e citações do *Código Eleitoral Anotado 2026* prevenindo alucinações.
+4. **`plain-language-translator`**: Traduz para **ELI5**, agrupa na **Regra dos 3 passos** e aplica **sanitização determinística de Plain Text (0% Markdown)** para o eleitor.
+5. **`lgpd-privacy-shield`**: Detecta CPFs, RGs ou Títulos de Eleitor e injeta o aviso de privacidade no topo da conversa.
+6. **`electoral-calendar-calculator`**: Orienta sobre prazos decadenciais das Eleições 2026 (151 dias antes do pleito, 100 dias transferência).
+
+---
+
+## 📂 Estrutura do Repositório
 
 ```
 telegram-electoral-agent/
-├── data/
-│   ├── embeddings_cache/   # [Ignorado] Cache local de embeddings
-│   ├── faiss_index/         # Banco vetorial FAISS indexado
-│   └── query_logs.jsonl    # [Ignorado] Histórico estruturado de consultas
+├── .agent/                  # Governança de planejamento e specs agênticas
+│   ├── memory/              # Memory storage e context-loaded.yaml (Gate Duplo)
+│   └── stories/             # Spec técnica STORY-002-spec.md (Zero Trust SDD)
+├── data/                    # [Ignorado no Git / Gerado no Startup] Base FAISS e logs
 ├── docs/
-│   ├── ADR/                 # Registro de Decisões Arquiteturais (ADRs)
-│   ├── references/          # PDFs de referências (Código Eleitoral, resoluções, etc)
-│   └── PRD.md               # Product Requirements Document
+│   ├── ADR/                 # Decisões de Arquitetura (ADR-001 até ADR-006)
+│   ├── references/          # 11 PDFs Oficiais (Código Eleitoral 2026, Resoluções, Manuais)
+│   └── PRD.md               # Product Requirements Document V2.0
+├── pilot/                   # Artefatos da fase de expansão e deploy VPS
+│   ├── .agent/stories/      # Spec STORY-PILOT-001-spec.md
+│   └── docs/ADR/            # ADR-P001 e ADR-P002 (Roadmap Produção)
 ├── src/
 │   ├── rag/
-│   │   ├── ingestion.py     # Ingestão de PDFs e geração de embeddings com cache
-│   │   ├── intent.py        # Classificação automática de personas
-│   │   ├── researcher.py    # Busca semântica e prompts RAG no LangGraph
-│   │   ├── validator_skill.py # Validação jurídica de citações contra alucinações
-│   │   └── legal_writer.py  # Formatação e estilização das respostas (Servidor/Eleitor)
-│   ├── api.py               # FastAPI Adapter com SSE Streaming, Watcher e Logger
-│   ├── bot.py               # Bot clássico standalone (opcional)
+│   │   ├── ingestion.py     # Ingestão com CacheBackedEmbeddings e auto-startup
+│   │   ├── intent.py        # Intent classifier + LGPD privacy shield
+│   │   ├── researcher.py    # Researcher com Query Expansion e Cognitive Skills
+│   │   ├── validator_skill.py # Legal Citation Checker anti-alucinação
+│   │   └── legal_writer.py  # Formatação Dual Persona + Plain Text Stripper
+│   ├── api.py               # FastAPI Adapter com SSE Streaming e Watcher
+│   ├── bot.py               # Bot do Telegram com Dummy Server PaaS (:8080)
 │   ├── config.py            # Variáveis e configurações globais
-│   └── graph.py             # Configuração e compilação do fluxo LangGraph
+│   └── graph.py             # Compilação do Grafo LangGraph
 ├── tests/
-│   ├── test_observability.py # Teste integrado de logs e watcher de arquivos
-│   ├── test_persona.py      # Teste unitário e de conformidade de personas do LangGraph
-│   └── test_retrieval.py    # Script de diagnóstico de busca e similaridade
-├── Dockerfile               # Configuração do container para deploy
-├── requirements.txt         # Lista de dependências Python
-└── project-status.yaml      # Status e progresso do projeto no workspace
+│   ├── test_persona.py      # Testes de integração das 6 Cognitive Skills
+│   ├── test_observability.py # Testes de logging e streaming E2E
+│   └── test_retrieval.py    # Diagnóstico de recuperação FAISS
+├── deploy_vps.sh            # Script de automação para deploy em servidores Linux/VPS
+├── Dockerfile               # Container de produção para Railway / Cloud
+├── docker-compose.yml       # Orquestração multi-container local / VPS
+└── project-status.yaml      # Metadata do projeto no workspace
 ```
 
 ---
 
-## 🛠️ Configuração e Execução
+## 🛠️ Como Executar e Fazer Deploy
 
-### Pré-requisitos
-*   Python 3.11 instalado.
-*   Chave de API da OpenAI ou OpenRouter.
-*   Acesso a um bot do Telegram (via BotFather) caso queira integrar o canal.
-
-### 1. Instalação das Dependências
-No diretório raiz do projeto, instale os pacotes no seu ambiente virtual:
+### Execução Local
 ```bash
+# 1. Instalar dependências
 pip install -r requirements.txt
+
+# 2. Ingerir a base de conhecimento
+python -m src.rag.ingestion
+
+# 3. Executar o bot localmente
+python src/bot.py
 ```
 
-### 2. Configuração do `.env`
-Crie um arquivo `.env` na raiz do projeto (baseie-se no `.env.example` se disponível):
-```env
-OPENAI_API_KEY=sua-chave-aqui
-OPENAI_API_BASE=https://api.openai.com/v1 # Ou endpoint OpenRouter
-MODEL_NAME=gpt-4o-mini
-EMBEDDING_MODEL=text-embedding-3-small
-TELEGRAM_BOT_TOKEN=seu-token-do-bot-aqui
-```
-
-### 3. Execução do Servidor FastAPI (Adapter)
-Para iniciar o adaptador local que processa o RAG e o streaming de respostas:
-```bash
-python -m uvicorn src.api:app --host 0.0.0.0 --port 8123
-```
+### Deploy em Nuvem (Railway PaaS)
+O repositório já está pré-configurado para o **Railway**:
+- O `Dockerfile` cria a estrutura e o `bot.py` roda a auto-ingestão dos PDFs no startup se o vetor não existir.
+- O Railway injeta a porta `$PORT` para o `start_dummy_server()` validar o Healthcheck.
 
 ---
 
-## 🧪 Validação e Testes
+## 🧪 Testes Automatizados
 
-O projeto conta com suítes de testes automatizados para garantir a qualidade de comportamento e infraestrutura:
-
-### Testes de Persona e Conformidade (LangGraph)
-Valida a formatação de texto puro para eleitores, a injeção do aviso da LGPD na detecção de CPF e o uso de BLUF/Minto para servidores:
+Para rodar a suíte completa de verificação de personas e skills:
 ```bash
 python -m tests.test_persona
-```
-
-### Teste de Observabilidade e Auto-Ingestão (E2E)
-Testa se os logs são escritos perfeitamente no formato JSON Lines e se o watcher assíncrono consegue detectar um novo PDF, rodar a ingestão e atualizar a base FAISS em tempo real:
-```bash
-python -m tests.test_observability
 ```
