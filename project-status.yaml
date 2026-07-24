@@ -1,13 +1,28 @@
 name: telegram-electoral-agent
-status: verified
-phase: done
-current_sprint: 1
-team:
-  - analyst
-  - architect
-  - pm
-  - dev
-blockers: []
-next_milestone: Hermes Gateway Live
-endpoints:
+status: production
+phase: Railway_Active
+tech_lead: Diego William
+environment: Antigravity
+current_sprint: 2
+cognitive_skills:
+  - query-expander-electoral
+  - ase-code-resolver
+  - electoral-calendar-calculator
+  - legal-citation-checker
+  - plain-language-translator
+  - lgpd-privacy-shield
+governance:
+  global_rules: V5.12
+  context_loaded: .agent/memory/context-loaded.yaml
+  adrs:
+    - docs/ADR/ADR-006-evolucao-cerebro-skills.md
+    - pilot/docs/ADR/ADR-P002-roadmap-producao-vps.md
+  specs:
+    - .agent/stories/STORY-002-spec.md
+    - pilot/.agent/stories/STORY-PILOT-001-spec.md
+deployment:
+  platform: Railway PaaS
+  container: Docker
+  status: 🟢 ACTIVE / ONLINE
+  healthcheck_port: 8080
   adapter_api: "http://localhost:8123/v1"
